@@ -5317,3 +5317,98 @@ items:
         Melee_strength: 155
       Attack_speed: 4
       Combat_options: 9
+  black_cloak:
+    parent: standard_cloak
+    custom_model_data: 1
+    examine:
+    - 'A thick black cape.'
+  blue_cloak:
+    parent: standard_cloak
+    custom_model_data: 2
+    examine:
+    - 'A thick blue cape.'
+  brown_cloak:
+    parent: standard_cloak
+    custom_model_data: 3
+    examine:
+    - 'A thick brown cape.'
+  cyan_cloak:
+    parent: standard_cloak
+    custom_model_data: 4
+    examine:
+    - 'A thick cyan cape.'
+  gray_cloak:
+    parent: standard_cloak
+    custom_model_data: 5
+    examine:
+    - 'A thick gray cape.'
+  green_cloak:
+    parent: standard_cloak
+    custom_model_data: 6
+    examine:
+    - 'A thick green cape.'
+  light_blue_cloak:
+    parent: standard_cloak
+    custom_model_data: 7
+    examine:
+    - 'A thick light blue cape.'
+  light_gray_cloak:
+    parent: standard_cloak
+    custom_model_data: 8
+    examine:
+    - 'A thick light gray cape.'
+  lime_cloak:
+    parent: standard_cloak
+    custom_model_data: 9
+    examine:
+    - 'A thick lime cape.'
+  magenta_cloak:
+    parent: standard_cloak
+    custom_model_data: 10
+    examine:
+    - 'A thick magenta cape.'
+  orange_cloak:
+    parent: standard_cloak
+    custom_model_data: 11
+    examine:
+    - 'A thick orange cape.'
+  pink_cloak:
+    parent: standard_cloak
+    custom_model_data: 12
+    examine:
+    - 'A thick pink cape.'
+  purple_cloak:
+    parent: standard_cloak
+    custom_model_data: 13
+    examine:
+    - 'A thick purple cape.'
+  red_cloak:
+    parent: standard_cloak
+    custom_model_data: 14
+    examine:
+    - 'A thick red cape.'
+  white_cloak:
+    parent: standard_cloak
+    custom_model_data: 15
+    examine:
+    - 'A thick white cape.'
+  yellow_cloak:
+    parent: standard_cloak
+    custom_model_data: 16
+    examine:
+    - 'A thick yellow cape.'
+  standard_cloak:
+    material: elytra
+    tradeable: true
+    notable: true
+    value:
+      coins: 32
+      high_alchemy: 19
+      low_alchemy: 12
+    weight: 0.453
+    slot: cloak
+    stats:
+      defence_bonus:
+        Slash_defence: 1
+        Crush_defence: 1
+        Ranged_defence: 2

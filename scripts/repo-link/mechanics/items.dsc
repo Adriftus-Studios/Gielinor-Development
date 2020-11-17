@@ -12,7 +12,13 @@ item:
 
   # % Define Base Definitions
     - define nbt <list_single[type/generic]>
+    - define lore <list>
     - define data <yaml[items].read[items.<[name]>]>
+
+  # % Item Parent Properties
+    - if <[data].contains[parent]>:
+      - define parent <[data].get[parent]>
+      - define data <yaml[equipment].read[items.<[parent]>].include[<[data]>]>
 
   # % Item Material and Model Properties
     - define item <item[i].with[material=<[data].get[material]>]>
@@ -23,7 +29,8 @@ item:
     - define item "<[item].with[display_name=<&r><&f><[name].replace[_].with[ ].to_titlecase>]>"
 
   # % Item Examine Property
-    - define lore <[data].get[examine].parse_tag[<&color[#C1F2F7]><[parse_value]>]>
+    - if <[data].contains[examine]>:
+      - define lore <[lore].include[<[data].get[examine].parse_tag[<&color[#C1F2F7]><[parse_value]>]>]>
 
   # % Item Weight Property
     - if <[data].contains[weight]>:
@@ -73,7 +80,13 @@ equipment:
 
   # % Define Base Definitions
     - define nbt <list_single[type/equipment]>
+    - define lore <list>
     - define data <yaml[equipment].read[items.<[name]>]>
+
+  # % Item Parent Properties
+    - if <[data].contains[parent]>:
+      - define parent <[data].get[parent]>
+      - define data <yaml[equipment].read[items.<[parent]>].include[<[data]>]>
 
   # % Item Material and Model Properties
     - define item <item[i].with[material=<[data].get[material]>]>
@@ -84,7 +97,8 @@ equipment:
     - define item "<[item].with[display_name=<&r><&f><[name].replace[_].with[ ].to_titlecase>]>"
 
   # % Item Examine Property
-    - define lore <[data].get[examine].parse_tag[<&color[#C1F2F7]><[parse_value]>]>
+    - if <[data].contains[examine]>:
+      - define lore <[lore].include[<[data].get[examine].parse_tag[<&color[#C1F2F7]><[parse_value]>]>]>
 
   # % Item Weight Property
     - if <[data].contains[weight]>:
