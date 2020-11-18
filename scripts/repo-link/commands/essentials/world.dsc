@@ -60,7 +60,7 @@ world_command:
   # % ██ [  check args ] ██
     - if <context.args.is_empty>:
       - flag player behr.essentials.teleport.back:<map.with[location].as[<player.location>].with[world].as[<player.world.name>]>
-      - teleport <player> <world[world].spawn_location>
+      - teleport <player> <world[Gielinor].spawn_location>
       - stop
 
   # % ██ [  /world world ] ██
@@ -72,7 +72,7 @@ world_command:
       - if <[blacklist].contains[<[world]>]>:
         - if !<player.groups.contains_any[coordinator|administrator|developer]>:
           - inject command_syntax
-      
+
       # % ██ [  check if world is loaded ] ██
       - if !<server.worlds.parse[name].contains[<[world]>]>:
         - narrate "<proc[colorize].context[<&lb><[world]><&rb>|yellow]> <proc[colorize].context[is not currently loaded.|red]>"
@@ -118,7 +118,7 @@ world_command:
     - define loaded_worlds <server.worlds.parse[name]>
     - define valid_worlds:!|:<[valid_worlds].exclude[<[loaded_worlds]>]>
     - define world <context.args.get[2]>
-    
+
     - choose <context.args.first>:
       - case create:
         - if <context.args.size> != 2:
@@ -142,16 +142,16 @@ world_command:
       - case destroy:
         - if <context.args.size> != 2:
           - inject command_syntax
-          
+
         - if !<[loaded_worlds].contains[<[world]>]>:
           - define reason "World does not exist."
           - inject command_error
 
-        - if <[world]> == world:
+        - if <[world]> == Gielinor:
           - define reason "This world requires manual deletion."
           - inject command_error
-          
-        - define blacklist <list[runescape50px1|bandit-craft|gielinor3]>
+
+        - define blacklist <list[gielinor3]>
         - if <[blacklist].contains[<[world]>]> && !<player.in_group[coordinator]>:
           - define reason "this world is blacklisted for deletion."
           - inject command_error
@@ -161,7 +161,7 @@ world_command:
       - case load:
         - if <context.args.size> != 2:
           - inject command_syntax
-          
+
         - if <[loaded_worlds].contains[<[world]>]>:
           - define reason "this world is loaded already."
           - inject command_error
@@ -176,7 +176,7 @@ world_command:
       - case unload:
         - if <context.args.size> != 2:
           - inject command_syntax
-          
+
         - if !<[loaded_worlds].contains[<[world]>]>:
           - define reason "this world is not loaded."
           - inject command_error
@@ -184,18 +184,18 @@ world_command:
         - if <[world]> == world:
           - define reason "this world cannot be unloaded."
           - inject command_error
-          
+
         - define blacklist <list[world_the_end|world_nether]>
         - if <[blacklist].contains[<[world]>]> && !<player.in_group[coordinator]>:
           - define reason "this world is blacklisted for unloading."
           - inject command_error
-        
+
         - inject locally unloadworld
 
       - case teleport:
         - if <context.args.size> < 2:
           - inject command_syntax
-        
+
         - if <context.args.size> == 3:
           - define user <context.args.get[3]>
           - inject player_verification
