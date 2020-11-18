@@ -1,12 +1,12 @@
 yaml_handler:
   type: world
   load:
-    - foreach <yaml[server_configuration].read[configurations]> key:yaml as:file_path:
+    - foreach <yaml[server_configurations].read[configurations]> key:yaml as:file_path:
       - ~run load_yaml def:<[yaml]>|<[file_path]>|false|false
 
   events:
     on server start:
-      - yaml id:server_configuration load:data/repo-link/configuration.yml
+      - yaml id:server_configurations load:data/repo-link/configurations.yml
       - inject locally load
 
     on script reload:
@@ -36,9 +36,9 @@ save_yaml:
   type: task
   definitions: yaml
   script:
-    - if !<yaml[server_configuration].contains[configurations.<[yaml]>]>:
+    - if !<yaml[server_configurations].contains[configurations.<[yaml]>]>:
       - narrate format:colorize_red "Invalid Yaml File Configured: <[yaml]>"
       - stop
 
-    - define file_path <yaml[server_configuration].read[configurations.<[yaml]>]>
+    - define file_path <yaml[server_configurations].read[configurations.<[yaml]>]>
     - yaml id:<[yaml]> savefile:<[file_path]>

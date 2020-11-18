@@ -1,0 +1,195 @@
+entities:
+  ground_ores:
+    copper_ore:
+      custom_model_data: 4
+      minimum_level: 1
+      success_chance: 50
+      experience: 17.5
+      respawn_time: 2.4
+      color: 157,113,73
+    tin_ore:
+      custom_model_data: 14
+      minimum_level: 1
+      success_chance: 50
+      experience: 17.5
+      respawn_time: 2.4
+      color: 154,143,143
+    clay:
+      custom_model_data: 15
+      minimum_level: 1
+      success_chance: 50
+      experience: 5
+      respawn_time: 1.2
+      color: 168,137,77
+    limestone:
+      minimum_level: 10
+      success_chance: 50
+      experience: 26.5
+      respawn_time: 5.4
+      color: 110,110,110
+    blurite_ore:
+      custom_model_data: 2
+      minimum_level: 10
+      success_chance: 50
+      experience: 17.5
+      respawn_time: 25
+      color: 128,124,218
+    iron_ore:
+      custom_model_data: 8
+      minimum_level: 15
+      success_chance: 50
+      experience: 35
+      respawn_time: 5.4
+      color: 160,101,64
+    silver_ore:
+      custom_model_data: 13
+      minimum_level: 20
+      success_chance: 50
+      experience: 40
+      respawn_time: 60
+      mining_gloves_chance: 50
+      expert_mining_gloves_chance: 50
+      color: 177,165,165
+    coal_ore:
+      custom_model_data: 3
+      minimum_level: 30
+      success_chance: 50
+      experience: 50
+      respawn_time: 30
+      mining_gloves_chance: 40
+      expert_mining_gloves_chance: 40
+      color: 62,62,40
+    gold_ore:
+      custom_model_data: 7
+      minimum_level: 40
+      success_chance: 50
+      experience: 65
+      respawn_time: 60
+      mining_gloves_chance: 33
+      expert_mining_gloves_chance: 34
+      color: 161,144,57
+    mithril_ore:
+      custom_model_data: 11
+      minimum_level: 55
+      success_chance: 50
+      experience: 80
+      respawn_time: 12025
+      expert_mining_gloves_chance: 25
+      color: 80,81,119
+    lovakite_ore:
+      custom_model_data: 9
+      minimum_level: 65
+      success_chance: 50
+      experience: 10
+      respawn_time: 35
+      color: 85,18,9
+    adamantite_ore:
+      custom_model_data: 1
+      minimum_level: 70
+      success_chance: 50
+      experience: 95
+      respawn_time: 240
+      mining_gloves_chance: 16
+      expert_mining_gloves_chance: 17
+      color: 86,108,86
+    soft_clay:
+      custom_model_data: 16
+      minimum_level: 70
+      success_chance: 50
+      experience: 5
+      respawn_time: 1.2
+      color: 168,137,77
+    runite_ore:
+      custom_model_data: 12
+      minimum_level: 85
+      success_chance: 50
+      experience: 125
+      respawn_time: 720|360
+      mining_gloves_chance: 12
+      expert_mining_gloves_chance: 13
+      color: 114,162,169
+  wall_ores:
+    amethyst:
+      minimum_level: 92
+      success_chance: 50
+      experience: 240
+      respawn_time: 75
+      expert_mining_gloves_chance: 25
+    daeyalt_ore:
+      custom_model_data: 5
+      minimum_level: 20
+      success_chance: 50
+      experience: 17.5
+      respawn_time: 28
+      color: 14,118,108
+    pay-dirt:
+      minimum_level: 30
+      success_chance: 50
+      experience: 60
+      respawn_time: 60
+ 
+  special_ores:
+    chocolate:
+      minimum_level: 0
+      success_chance: 50
+      experience: 0
+      respawn_time: 0
+    elemental_rocks:
+      minimum_level: 1
+      success_chance: 50
+      experience: 1
+      respawn_time: 5.4|11.4|23.4
+    gem_ore:
+      custom_model_data: 17
+      minimum_level: 40
+      success_chance: 50
+      experience: 65
+      respawn_time: 59.4
+      display_name: Gems
+      color: 142,17,141
+    sulphur:
+      minimum_level: 42
+      success_chance: 50
+      experience: 25
+      respawn_time: 25.2
+    granite:
+      custom_model_data: 16
+      minimum_level: 45
+      success_chance: 50
+      experience: 50|60|75
+      respawn_time: 5
+      color: 168,137,77
+    sandstone:
+      minimum_level: 35
+      success_chance: 50
+      experience: 30|40|50|60
+      respawn_time: 5
+      color: 142,17,141
+
+    rune_essence:
+      minimum_level: 1
+      success_chance: 50
+      experience: 5
+    pure_essence:
+      minimum_level: 30
+      success_chance: 50
+      experience: 5
+    dense_essence_block:
+      minimum_level: 38
+      success_chance: 50
+      experience: 12
+    daeyalt_shard:
+      minimum_level: 60
+      success_chance: 50
+      experience: 5
+      respawn_time: 60
+    lunar_ore:
+      minimum_level: 60
+      success_chance: 50
+      experience: 0
+      respawn_time: 0
+    volcanic_ash:
+      minimum_level: 22
+      success_chance: 50
+      experience: 10
+      respawn_time: 30
