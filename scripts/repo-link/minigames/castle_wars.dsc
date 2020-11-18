@@ -2,7 +2,13 @@
 #$            double speed | 1.8 combat    | NPCs
 castle_wars_handler:
   type: world
+  debug: false
   events:
+    on server start:
+      - yaml id:barricades create
+      - yaml id:barricades set red_count:0
+      - yaml id:barricades set blue_count:0
+
     on player right clicks castle_wars_*_flag_entity:
       - determine passively cancelled
 
@@ -53,7 +59,7 @@ castle_wars_handler:
       - if <context.projectile||invalid> != invalid:
         - remove <context.projectile>
       - run castle_wars_barricade_damage def:<context.entity>
-  
+
     on player damages castle_wars_barricade_table_entity:
       - determine passively cancelled
       - inject castle_wars_barricade_entity
@@ -148,7 +154,7 @@ castle_wars_queue:
     - choose <[portal]>:
       - case return:
         - flag player gielinor.minigames.castle_wars.team:!
-        - title title:<&chr[0004].font[gielinor:scene]> fade_in:5t stay:0s fade_out:1s
+        - title title:<&font[gielinor:scene]><&chr[0004]><proc[negative_spacing].context[1]><&chr[0004]> fade_in:5t stay:0s fade_out:1s
         - wait 5t
         - equip <player> head:air chest:air
         - teleport <player> <location[897,76.0625,1828,15,90,Gielinor]>
@@ -165,7 +171,7 @@ castle_wars_queue:
         - else:
           - define team <list[red|blue].random>
 
-    - title title:<&chr[0004].font[gielinor:scene]> fade_in:5t stay:0s fade_out:1s
+    - title title:<&font[gielinor:scene]><&chr[0004]><proc[negative_spacing].context[1]><&chr[0004]> fade_in:5t stay:0s fade_out:1s
     - wait 5t
     - teleport <yaml[minigames].read[castle_wars.queue_room.spawn_areas].blocks.random>
 
@@ -251,7 +257,7 @@ castle_wars_start:
   script:
     - announce "game has started"
 
-    - title title:<&chr[0004].font[gielinor:scene]> fade_in:5t stay:0s fade_out:1s targets:<server.flag[gielinor.minigames.castle_wars.players]>
+    - title title:<&font[gielinor:scene]><&chr[0004]><proc[negative_spacing].context[1]><&chr[0004]> fade_in:5t stay:0s fade_out:1s targets:<server.flag[gielinor.minigames.castle_wars.players]>
     - wait 5t
     - heal <server.flag[gielinor.minigames.castle_wars.players]>
     - foreach red|blue as:team:
@@ -318,7 +324,7 @@ castle_wars_end:
       - announce format:colorize_blue "Blue team wins!"
     - else:
       - announce format:colorize_green "Tie game!"
-    - title title:<&chr[0004].font[gielinor:scene]> fade_in:5t stay:0s fade_out:1s targets:<server.flag[gielinor.minigames.castle_wars.players]>
+    - title title:<&font[gielinor:scene]><&chr[0004]><proc[negative_spacing].context[1]><&chr[0004]> fade_in:5t stay:0s fade_out:1s targets:<server.flag[gielinor.minigames.castle_wars.players]>
     - wait 5t
 
     - foreach <server.players_flagged[gielinor.minigames.castle_wars.death_screen]> as:player:
@@ -521,7 +527,7 @@ castle_wars_player_respawn:
     - determine <cuboid[Gielinor,895,76.06250,1826,899,76.06250,1830].blocks.random.with_yaw[<util.random.int[75].to[105]>].with_pitch[15]>
 
   script:
-    - title title:<&chr[0004].font[gielinor:scene]> fade_in:0s stay:0s fade_out:1s
+    - title title:<&font[gielinor:scene]><&chr[0004]><proc[negative_spacing].context[1]><&chr[0004]> fade_in:0s stay:0s fade_out:1s
     - if <player.has_flag[gielinor.minigames.castle_wars.team.red]>:
       - define team red
       - define op_team blue
@@ -719,7 +725,7 @@ spacing_fix_int:
           - define offset:+:0
         - case 4:
           - define offset:-:0
-    
+
     - if <[offset]> < 0:
       - determine <proc[negative_spacing].context[<[offset]>]><[int].font[gielinor:<[set]>]>
     - else if <[offset]> > 0:
@@ -946,19 +952,19 @@ castle_wars_portal_door:
     - define area <[cuboid].note_name>
     - define color <[area].after[castle_wars_].before[_portal_door_]>
 
-    - if !<player.has_flag[gielinor.minigames.castle_wars.team.<[color]>]>:
+    - if !<player.has_flag[gielinor.minigames.castle_wars.team.<[color]>]> && !<player.has_flag[behr.essentials.debugging]>:
       - if !<player.has_flag[gielinor.message_rate_limit.castle_wars_wrong_respawn_door]>:
         - flag player gielinor.message_rate_limit.castle_wars_wrong_respawn_door duration:7s
         - narrate format:colorize_red "You can't go in there."
       - stop
 
-    - if <player.has_flag[gielinor.minigames.castle_wars.flag_carrier]>:
+    - if <player.has_flag[gielinor.minigames.castle_wars.flag_carrier]> && !<player.has_flag[behr.essentials.debugging]>:
       - if !<player.has_flag[gielinor.message_rate_limit.castle_wars_respawn_door_with_flag]>:
         - flag player gielinor.message_rate_limit.castle_wars_respawn_door_with_flag duration:7s
         - narrate format:colorize_red "You can't go in there with the flag."
       - stop
-    
-    - if <player.has_flag[gielinor.minigames.castle_wars.respawn_door_cooldown]>:
+
+    - if <player.has_flag[gielinor.minigames.castle_wars.respawn_door_cooldown]> && !<player.has_flag[behr.essentials.debugging]>:
       - if !<player.has_flag[gielinor.message_rate_limit.castle_wars_respawn_door]>:
         - flag player gielinor.message_rate_limit.castle_wars_respawn_door duration:7s
         - narrate format:colorize_red "You must wait to use that again."
