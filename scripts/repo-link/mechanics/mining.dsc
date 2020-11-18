@@ -152,3 +152,23 @@ ground_ore_mining_event:
         - equip <npc> helmet:<npc.equipment_map.get[helmet].with[color=100,100,100]>
         - wait <[respawn_time]>s
         - equip <npc> helmet:<npc.equipment_map.get[helmet].with[color=85,52,38]>
+
+gem_rock_ore_item:
+  type: procedure
+  script:
+    - define chance <util.random.int[1].to[128]>
+    - if <[chance]> < 5:
+      - define gem diamond
+    - if <[chance]> < 10:
+      - define gem ruby
+    - if <[chance]> < 14:
+      - define gem emerald
+    - if <[chance]> < 22:
+      - define gem sapphire
+    - if <[chance]> < 37:
+      - define gem red_topaz
+    - if <[chance]> < 68:
+      - define gem jade
+    - else:
+      - define gem opal
+    - determine <proc[item].context[uncut_<[gem]>]>
