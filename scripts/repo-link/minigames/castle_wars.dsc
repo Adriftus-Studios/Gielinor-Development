@@ -269,6 +269,7 @@ castle_wars_queue:
     - flag server gielinor.minigames.castle_wars.queue:!
     - flag server gielinor.minigames.castle_wars.start_time:!
     - flag server gielinor.minigames.castle_wars.players:!|:<server.online_players_flagged[gielinor.minigames.castle_wars.in_queue]>
+    - flag server gielinor.minigames.castle_wars.in_game
     - foreach <server.online_players_flagged[gielinor.minigames.castle_wars.in_queue].random[999]> as:player:
       - flag <[player]> gielinor.minigames.castle_wars.in_queue:!
       - flag <[player]> gielinor.minigames.castle_wars.in_game
@@ -286,6 +287,7 @@ castle_wars_start:
     - heal <server.flag[gielinor.minigames.castle_wars.players]>
     - foreach red|blue as:team:
       - flag server gielinor.minigames.castle_wars.score.<[team]>:0
+
       # @ spawn players
       - foreach <server.online_players_flagged[gielinor.minigames.castle_wars.team.<[team]>]> as:player:
         - define spawn_location <yaml[minigames].read[castle_wars.<[team]>_castle.respawn_room.respawn].blocks.random>
@@ -297,6 +299,10 @@ castle_wars_start:
 
     # @ spawn barriers
     - run castle_wars_barriers
+
+    # @ start particles
+    - run castle_wars_rockfall_trigger_animations
+    - run castle_wars_portal_door_particles
 
     # @ start timer
     - run castle_wars_timer
@@ -344,13 +350,17 @@ castle_wars_end:
     - define blue_score <server.flag[gielinor.minigames.castle_wars.score.blue]>
     - if <[red_score]> > <[blue_score]>:
       - announce format:colorize_red "Red team wins!"
-    #^- give castle_wars_ticket quantity:3 <server.online_players_flagged[gielinor.minigames.castle_wars.team.Red]>
+    #$ theese need looped for uniquification
+      - ~run castle_wars_statistics def:<list[false].include_single[<server.online_players_flagged[gielinor.minigames.castle_wars.team.red]>].include_single[<server.online_players_flagged[gielinor.minigames.castle_wars.team.blue]>].include[Red]>
+    #^- give <proc[item].context[castle_wars_ticket|3]> <server.online_players_flagged[gielinor.minigames.castle_wars.team.red]>
     - else if <[red_score]> > <[blue_score]>:
       - announce format:colorize_blue "Blue team wins!"
-    #^- give castle_wars_ticket quantity:3 <server.online_players_flagged[gielinor.minigames.castle_wars.team.Blue]>
+      - ~run castle_wars_statistics def:<list[false].include_single[<server.online_players_flagged[gielinor.minigames.castle_wars.team.blue]>].include_single[<server.online_players_flagged[gielinor.minigames.castle_wars.team.red]>].include[Blue]>
+    #^- give <proc[item].context[castle_wars_ticket|3]> <server.online_players_flagged[gielinor.minigames.castle_wars.team.blue]>
     - else:
       - announce format:colorize_green "Tie game!"
-    #^- give castle_wars_ticket quantity:2 <server.flag[gielinor.minigames.castle_wars.players]>
+      - ~run castle_wars_statistics def:true|<server.flag[gielinor.minigames.castle_wars.players]>
+    #^- give <proc[item].context[castle_wars_ticket|2]> <server.flag[gielinor.minigames.castle_wars.players]>
     - title title:<&font[gielinor:scene]><&chr[0004]><proc[negative_spacing].context[1]><&chr[0004]> fade_in:5t stay:0s fade_out:1s targets:<server.flag[gielinor.minigames.castle_wars.players]>
     - wait 5t
 
@@ -393,6 +403,38 @@ castle_wars_end:
     - flag server gielinor.minigames.castle_wars.players:!
     - flag server gielinor.minigames.castle_wars.timer:!
     - flag server gielinor.minigames.castle_wars.score:!
+    - flag server gielinor.minigames.castle_wars.in_game:!
+
+castle_wars_statistics:
+  type: task
+  definitions: tie|team_1|team_2|winner
+  season:
+    january: winter
+    february: winter
+    march: spring
+    april: spring
+    may: spring
+    june: summer
+    july: summer
+    august: summer
+    september: autumn
+    october: autumn
+    november: autumn
+    december: winter
+  script:
+    - if <[tie]>:
+      - define season <util.time_now.year>_<script.data_key[season].get[<util.time_now.month_name>]>
+      - foreach <[team_1]> as:player:
+        - flag <[player]> gielinor.statistics.minigames.castle_wars.games_played:++
+      - stop
+
+    - flag server gielinor.statistics.minigames.season.<[season]>.<[winner]>:++
+    - foreach <[team_1]> as:player:
+      - flag <[player]> gielinor.statistics.minigames.castle_wars.won_games:++
+      - flag <[player]> gielinor.statistics.minigames.castle_wars.games_played:++
+    - foreach <[team_2]> as:player:
+      - flag <[player]> gielinor.statistics.minigames.castle_wars.lost_games:++
+      - flag <[player]> gielinor.statistics.minigames.castle_wars.games_played:++
 
 castle_wars_flag:
   type: task
@@ -577,16 +619,6 @@ castle_wars_player_respawn:
     - define spawn_location <yaml[minigames].read[castle_wars.<[team]>_castle.respawn_room.respawn].blocks.random>
     - determine <[spawn_location]>
 
-castle_wars_explosive_potion:
-  type: item
-  material: potion
-  display name: <proc[colorize].context[Explosive Potion|orange]>
-  lore:
-    - <&color[#C1F2F7]>I can use this to destroy rockslides and barricades.
-  mechanisms:
-    color: orange
-    hides: all
-
 castle_wars_red_helmet:
   type: item
   material: leather_helmet
@@ -681,6 +713,7 @@ castle_wars_table_item_grab:
 
 castle_wars_explosive_potion_task:
   type: task
+  definitions: location
   script:
     - if <player.has_flag[gielinor.minigames.castle_wars.potion_cooldown]>:
       - stop
@@ -702,8 +735,14 @@ castle_wars_explosive_potion_task:
       - stop
     - flag server <[flag]>.health:!
     - flag server <[flag]>.fallen:!
+    - run locally recoil def:<[cuboid].center.below[2]>
     - inject castle_wars_rockfall.break_blocks
     - take scriptname:castle_wars_explosive_potion
+
+  recoil:
+    - foreach <[location].find.entities[player|npc].within[4]> as:player:
+      - define magnitude <[player].location.distance[<[location]>]>
+      - adjust <[player]> velocity:<[player].location.sub[<[location]>].normalize.div[<[magnitude].div[2.5]>].with_y[0.3]>
 
   drink:
     - take scriptname:castle_wars_explosive_potion
@@ -900,11 +939,15 @@ castle_wars_barricade_entity:
       - stop
     - inject castle_wars_team_definitions
     - if <yaml[barricades].read[<[team]>_count]> > 14:
-      - narrate format:colorize_red "Your team already has the maximum number of barricades set!"
+      - if !<player.has_flag[gielinor.message_rate_limit.castle_wars_barricade_in_respawn]>:
+        - flag player gielinor.message_rate_limit.castle_wars_barricade_in_respawn duration:7s
+        - narrate format:colorize_red "Your team already has the maximum number of barricades set!"
       - stop
 
-    - if <[location].is_within[castle_wars.<[team]>_castle.respawn_room.full]>:
-      - narrate format:colorize_red "You cannot place that in here."
+    - if <[location].is_within[<yaml[minigames].read[castle_wars.<[team]>_castle.respawn_room.full]>]>:
+      - if !<player.has_flag[gielinor.message_rate_limit.castle_wars_maximum_barricades_set]>:
+        - flag player gielinor.message_rate_limit.castle_wars_maximum_barricades_set duration:7s
+        - narrate format:colorize_red "You cannot place that in here."
       - stop
 
     - define obstruction <list>
@@ -1013,6 +1056,7 @@ castle_wars_barricade_damage:
 
   explode:
     - define entity <yaml[barricades].read[hitbox_entities.<[base]>]>
+    - run castle_wars_explosive_potion_task.recoil def:<[entity].location.below[2]>
     - repeat 3:
       - playeffect at:<[entity].location.above[1.8]> effect:EXPLOSION_LARGE offset:0.5 quantity:1
       - playeffect at:<[entity].location.above[1.8]> effect:EXPLOSION_NORMAL offset:0.5 quantity:3
@@ -1056,13 +1100,37 @@ castle_wars_portal_door_particles:
   type: task
   definitions: locations
   script:
-    - define portal_area <player.we_selection.blocks.parse[center].parse_tag[<[parse_value].left[0.1].points_between[<[parse_value].right[0.1]>].distance[0.1]>].combine>
-    - repeat 10:
-      - foreach <[portal_area]> as:area:
-        - playeffect at:<[area]> effect:spell_instant quantity:1 offset:0.25,0.25,0.25
-        - wait 1t
-  ambient:
-    - playeffect at:<[locations]> effect:spell_instant offset:0.22,0.22,0.22
+    - flag server gielinor.minigames.castle_wars.in_game
+    - foreach red|blue as:team:
+      - foreach x|z as:axis:
+        - define cuboid <cuboid[castle_wars_<[team]>_portal_door_<[axis]>]>
+        - choose <[axis]>:
+          - case x:
+            - define min_x <[cuboid].max.x.add[1.2]>
+            - define max_x <[cuboid].max.x.add[1.2]>
+            - define min_y <[cuboid].min.y>
+            - define max_y <[cuboid].max.y.add[1]>
+            - define min_z <[cuboid].max.z.add[1.1]>
+            - define max_z <[cuboid].min.z.sub[0.1]>
+            - run castle_wars_portal_door_particles_task def:<[min_x]>|<[max_x]>|<[min_y]>|<[max_y]>|<[min_z]>|<[max_z]>
+            - run castle_wars_portal_door_particles_task def:<[min_x].sub[1]>|<[max_x].sub[1]>|<[min_y]>|<[max_y]>|<[min_z]>|<[max_z]>
+          - case z:
+            - define min_x <[cuboid].min.x>
+            - define max_x <[cuboid].max.x.add[0.4]>
+            - define min_y <[cuboid].min.y>
+            - define max_y <[cuboid].max.y.add[0.4]>
+            - define min_z <[cuboid].min.z>
+            - define max_z <[cuboid].max.z>
+            - run castle_wars_portal_door_particles_task def:<[min_x]>|<[max_x]>|<[min_y]>|<[max_y]>|<[min_z]>|<[max_z]>
+            - run castle_wars_portal_door_particles_task def:<[min_x]>|<[max_x]>|<[min_y]>|<[max_y]>|<[min_z].add[0.8]>|<[max_z].add[0.8]>
+
+castle_wars_portal_door_particles_task:
+  type: task
+  definitions: min_x|max_x|min_y|max_y|min_z|max_z
+  script:
+    - while <server.has_flag[gielinor.minigames.castle_wars.in_game]>:
+      - playeffect at:<location[<util.random.decimal[<[min_x]>].to[<[max_x]>]>,<util.random.decimal[<[min_y]>].to[<[max_y]>]>,<util.random.decimal[<[min_z]>].to[<[max_z]>]>,Gielinor]> effect:END_ROD offset:0
+      - wait 1s
 
 castle_wars_portal_door:
   type: task
@@ -1274,14 +1342,13 @@ castle_wars_trigger_particles:
   type: task
   definitions: flag|min_x|max_x|min_y|max_y|min_z|max_z
   script:
-    - while !<server.has_flag[<[flag]>]> && <server.has_flag[gielinor.minigames.castle_wars.in_game]>:
+    - while <server.has_flag[<[flag]>].not> && <server.has_flag[gielinor.minigames.castle_wars.in_game]>:
       - playeffect at:<location[<util.random.decimal[<[min_x]>].to[<[max_x]>]>,<util.random.decimal[<[min_y]>].to[<[max_y]>]>,<util.random.decimal[<[min_z]>].to[<[max_z]>]>,Gielinor]> effect:END_ROD offset:0
       - wait 1s
 
 castle_wars_restore_notables:
   type: task
   version: 1.0
-  debug: true
   script:
   #^- narrate "<proc[colorize].context[Repair Notables? Version:"
     - narrate <proc[colorize].context[<script.data_key[version]>|green]>
