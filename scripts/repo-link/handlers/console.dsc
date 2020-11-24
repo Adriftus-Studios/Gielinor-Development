@@ -11,7 +11,7 @@ console_handler:
           - narrate targets:<server.online_players_flagged[behr.essentials.debugging]> "<&c>Reload Error"
         - else:
           - narrate targets:<server.online_players_flagged[behr.essentials.debugging]> "<&a>Reloaded"
- 
+
     on script generates error:
       - if "<context.message.contains_any_text[list_flags|{ braced } command format|'&dot' or '&cm']>":
         - determine cancelled

@@ -61,7 +61,7 @@ command_listener:
             - define Permission <script[<context.command>_Command].data_key[permission]>
           - else:
             - define Permission Invalid
-            
+
           - if !<player.has_permission[<[Permission]>]> && <[Permission]> != Invalid:
             - define Hover "<&c>Grant Permission<&4>: <&b>/<&3><context.command.to_lowercase> <context.raw_args>"
             - define Text "[<&8><player.display_name.strip_color><&7>]<&3>: <&b>/<&3><context.command.to_lowercase> <context.raw_args>"

@@ -2,6 +2,7 @@
 #$            double speed | 1.8 combat    | NPCs
 castle_wars_handler:
   type: world
+  debug: false
   events:
     on player right clicks castle_wars_*_flag_entity:
       - determine passively cancelled
@@ -92,7 +93,7 @@ castle_wars_handler:
       - inject castle_wars_flag_event.home_team_check
       - inject castle_wars_flag_event
 
-    on player clicks block in:castle_wars_*_wooden_door_*:
+    on player clicks spruce_* in:castle_wars_*_wooden_door_*:
       - determine passively cancelled
       - ratelimit <player> 2t
       - inject castle_wars_wooden_door
@@ -147,6 +148,17 @@ castle_wars_handler:
 castle_wars_queue:
   type: task
   queue_process:
+  #$ returns the cause of the event. Can be: WALK, WORLD_CHANGE, JOIN, QUIT, TELEPORT, VEHICLE.
+    - if <context.cause.contains_any[world_change]>:
+      - if !<player.has_flag[gielinor.message_rate_limit.castle_wars_queue_room_teleport]>:
+        - flag player gielinor.message_rate_limit.castle_wars_queue_room_teleport duration:7s
+        - narrate format:colorize_red "You cannot teleport to this location."
+      - determine cancelled
+
+    - if <context.cause.contains_any[join|quit]>:
+      - teleport <player> <cuboid[Gielinor,895,76.06250,1826,899,76.06250,1830].blocks.random.with_yaw[<util.random.int[75].to[105]>].with_pitch[15]>
+      - stop
+
     - if <server.has_flag[gielinor.minigames.castle_wars.queue]>:
       - if !<server.has_flag[gielinor.minigames.castle_wars.start_time]>:
         - define bar <server.flag[gielinor.minigames.castle_wars.waiting_box]>
@@ -169,12 +181,12 @@ castle_wars_queue:
         - flag player gielinor.message_rate_limit.castle_wars_equipment_requirement duration:7s
         - narrate format:colorize_red "You can't wear hats, cloaks or helms in the arena."
       - adjust <player> velocity:<player.location.sub[<context.area.center.below[1.2]>].normalize.mul[1.2].with_y[0.3]>
-      - playsound <player> sound:BLOCK_BEACON_DEACTIVATE
+      - playsound <player.location> sound:BLOCK_BEACON_DEACTIVATE
       - stop
 
   player_initiate:
-    - playsound <player> sound:BLOCK_BEACON_ACTIVATE volume:10
-    - playsound <player> sound:BLOCK_BEACON_POWER_SELECT volume:10
+    - playsound <player.location> sound:BLOCK_BEACON_ACTIVATE volume:10
+    - playsound <player.location> sound:BLOCK_BEACON_POWER_SELECT volume:10
     - choose <[portal]>:
       - case return:
         - flag player gielinor.minigames.castle_wars.team:!
@@ -288,23 +300,29 @@ castle_wars_start:
     - foreach red|blue as:team:
       - flag server gielinor.minigames.castle_wars.score.<[team]>:0
 
-      # @ spawn players
+      # @ ██ [ spawn players ] ██
       - foreach <server.online_players_flagged[gielinor.minigames.castle_wars.team.<[team]>]> as:player:
         - define spawn_location <yaml[minigames].read[castle_wars.<[team]>_castle.respawn_room.respawn].blocks.random>
         - teleport <[player]> <[spawn_location]>
-      #$- ~run castle_wars_cheat_prevention def:<[player]>
 
-    # @ spawn flags
+      # @ ██ [ adjust players ] ██
+        - if <server.has_flag[gielinor.minigames.castle_wars.gamemode.increased_speed]>:
+          - flag <[player]> gielinor.minigames.castle_wars.pregame_stats.speed:<player.walk_speed>
+          - adjust <[player]> walk_speed:0.35
+        - if !<[player].has_flag[behr.essentials.debugging]>:
+          - ~run castle_wars_cheat_prevention def:<[player]>
+
+    # @ ██ [ spawn flags ] ██
     - run castle_wars_flag def:<[team]>
 
-    # @ spawn barriers
+    # @ ██ [ spawn barriers ] ██
     - run castle_wars_barriers
 
-    # @ start particles
-    - run castle_wars_rockfall_trigger_animations
+    # @ ██ [ start particles ] ██
+    - run castle_wars_rockfall_trigger_animations.game_start
     - run castle_wars_portal_door_particles
 
-    # @ start timer
+    # @ ██ [ start timer ] ██
     - run castle_wars_timer
 
 castle_wars_timer:
@@ -312,7 +330,7 @@ castle_wars_timer:
   script:
     - flag server gielinor.minigames.castle_wars.active_queue:<queue.id>
     - bossbar create castle_wars_timer
-    - flag server gielinor.minigames.castle_wars.timer:<duration[5m]>
+    - flag server gielinor.minigames.castle_wars.timer:<duration[10m]>
 
     - while <server.has_flag[gielinor.minigames.castle_wars.active_queue]>:
       - define time <duration[<server.flag[gielinor.minigames.castle_wars.timer]>].sub[1s]>
@@ -375,12 +393,16 @@ castle_wars_end:
       - flag <[player]> gielinor.minigames.castle_wars.in_game:!
       - flag <[player]> gielinor.minigames.castle_wars.team:!
       - equip <[player]> head:air chest:air
+      - if <server.has_flag[gielinor.minigames.castle_wars.gamemode.increased_speed]>:
+        - adjust <[player]> walk_speed:<[player].flag[gielinor.minigames.castle_wars.pregame_stats.speed]>
+        - flag <[player]> gielinor.minigames.castle_wars.pregame_stats.speed:!
       - foreach castle_wars_barricade|castle_wars_bandage|castle_wars_explosive_potion as:item:
         - if <[player].inventory.contains.scriptname[<[item]>]>:
           - take scriptname:<[item]> from:<[player].inventory> quantity:<[player].inventory.quantity.scriptname[<[item]>]>
       - teleport <[player]> <cuboid[Gielinor,895,76.06250,1826,899,76.06250,1830].blocks.random.with_yaw[<util.random.int[75].to[105]>].with_pitch[15]>
 
     - if <yaml[barricades].contains[base_entities]>:
+      - chunkload <cuboid[Castle_Wars].chunks>
       - remove <yaml[barricades].list_keys[base_entities].include[<yaml[barricades].list_keys[hitbox_entities]>]>
 
     - foreach red|blue as:team:
@@ -398,6 +420,8 @@ castle_wars_end:
     - yaml id:barricades set base_entities:!
     - yaml id:barricades set red_count:0
     - yaml id:barricades set blue_count:0
+
+    - flag server gielinor.minigames.castle_wars.gamemode.increased_speed:!
 
     - flag server gielinor.minigames.castle_wars.flag_captured:!
     - flag server gielinor.minigames.castle_wars.players:!
@@ -688,7 +712,7 @@ castle_wars_bandage:
   display name: <&f>Bandage
   lore:
     # % advanced tooltip
-    - <&r><&f><&chr[9951]><proc[negative_spacing].context[9]><&chr[9950]><&r><&color[#cef7c0]> +10% Health
+    - <&r><&f><&chr[9951]><proc[negative_spacing].context[9]><&chr[9950]><&r><&color[#cef7c0]> +10<&pc> Health
     - <&color[#C1F2F7]>Use this on yourself or
     - <&color[#C1F2F7]>another player for health.
     # % A box of bandages for healing.
@@ -737,7 +761,8 @@ castle_wars_explosive_potion_task:
     - flag server <[flag]>.fallen:!
     - run locally recoil def:<[cuboid].center.below[2]>
     - inject castle_wars_rockfall.break_blocks
-    - take scriptname:castle_wars_explosive_potion
+    - if !<player.has_flag[behr.essentials.debugging]>:
+      - take scriptname:castle_wars_explosive_potion
 
   recoil:
     - foreach <[location].find.entities[player|npc].within[4]> as:player:
@@ -745,7 +770,8 @@ castle_wars_explosive_potion_task:
       - adjust <[player]> velocity:<[player].location.sub[<[location]>].normalize.div[<[magnitude].div[2.5]>].with_y[0.3]>
 
   drink:
-    - take scriptname:castle_wars_explosive_potion
+    - if !<player.has_flag[behr.essentials.debugging]>:
+      - take scriptname:castle_wars_explosive_potion
     - repeat 5:
       - hurt <player> <player.health_max.mul[0.1].round_up>
       - adjust <player> no_damage_duration:1t
@@ -774,7 +800,8 @@ castle_wars_bandage_task:
       - if <[target].health> < <[target].health_max>:
         - inject locally cooldown
         - heal <[target]> <[target].health_max.div[10].round>
-        - take scriptname:castle_wars_bandage
+        - if !<player.has_flag[behr.essentials.debugging]>:
+          - take scriptname:castle_wars_bandage
         - narrate targets:<[target]> format:colorize_green "<player.name> healed you!"
         - narrate format:colorize_green "You heal <[target].name> for some health."
         - stop
@@ -782,7 +809,8 @@ castle_wars_bandage_task:
     - if <player.health> < <player.health_max>:
         - inject locally cooldown
         - heal <player.health_max.div[10].round>
-        - take scriptname:castle_wars_bandage
+        - if !<player.has_flag[behr.essentials.debugging]>:
+          - take scriptname:castle_wars_bandage
         - narrate format:colorize_green "You recover some health."
 
   cooldown:
@@ -930,7 +958,7 @@ castle_wars_barricade_entity:
       - stop
     - inject locally cooldown
     - drop castle_wars_barricade
-    - playsound <player> sound:BLOCK_LADDER_PLACE volume:0.5
+    - playsound <player.location> sound:BLOCK_LADDER_PLACE volume:0.5
 
   place:
     # % check
@@ -965,8 +993,9 @@ castle_wars_barricade_entity:
       - stop
   # % cooldown
     - inject locally cooldown
-    - take scriptname:castle_wars_barricade
-    - playsound <player> sound:BLOCK_LADDER_STEP volume:0.5
+    - if !<player.has_flag[behr.essentials.debugging]>:
+      - take scriptname:castle_wars_barricade
+    - playsound <[location]> sound:BLOCK_LADDER_STEP volume:0.5
     - spawn castle_wars_barricade_base_entity <[location]> save:base
     - define barricade_map <map.with[base].as[<entry[base].spawned_entity>]>
 
@@ -1014,6 +1043,7 @@ castle_wars_barricade_hitbox_entity:
   max_health: 100
   health: 100
   has_ai: false
+  persistent: true
 
 castle_wars_barricade_damage:
   type: task
@@ -1061,8 +1091,9 @@ castle_wars_barricade_damage:
       - playeffect at:<[entity].location.above[1.8]> effect:EXPLOSION_LARGE offset:0.5 quantity:1
       - playeffect at:<[entity].location.above[1.8]> effect:EXPLOSION_NORMAL offset:0.5 quantity:3
       - wait 2t
-    - playsound sound:ENTITY_DRAGON_FIREBALL_EXPLODE <player> pitch:<util.random.decimal[0.8].to[1.2]>
-    - take scriptname:castle_wars_explosive_potion
+    - playsound sound:ENTITY_DRAGON_FIREBALL_EXPLODE <[entity].location> pitch:<util.random.decimal[0.8].to[1.2]>
+    - if !<player.has_flag[behr.essentials.debugging]>:
+      - take scriptname:castle_wars_explosive_potion
     - inject castle_wars_barricade_damage.death
 
   damage:
@@ -1254,7 +1285,7 @@ castle_wars_rockfall:
       - playeffect at:<[block]> effect:CLOUD offset:0.5 quantity:<util.random.int[1].to[3]> data:0.01
       - if <[loop_index].mod[5]> == 1:
         - wait 1t
-        - playsound sound:ENTITY_DRAGON_FIREBALL_EXPLODE <player> pitch:<util.random.decimal[0.8].to[1.2]>
+        - playsound sound:ENTITY_DRAGON_FIREBALL_EXPLODE <[block].center> pitch:<util.random.decimal[0.8].to[1.2]>
     - modifyblock <[blocks]> structure_void
 
   mine_trigger:
@@ -1282,7 +1313,7 @@ castle_wars_rockfall:
         - spawn falling_block[fallingblock_type=gravel] <[block].center.with_y[<[highest]>]>
         - wait 1t
         - if <[i].mod[5]> == 1:
-          - playsound sound:ENTITY_GENERIC_EXPLODE <player> pitch:<util.random.decimal[0.8].to[1.2]>
+          - playsound sound:ENTITY_GENERIC_EXPLODE <[block].center> pitch:<util.random.decimal[0.8].to[1.2]>
 
 castle_wars_mining_animation:
   type: task
@@ -1302,6 +1333,10 @@ castle_wars_mining_animation:
 castle_wars_rockfall_trigger_animations:
   type: task
   definitions: team|axis
+  game_start:
+    - foreach red|blue as:team:
+      - foreach x|z as:axis:
+        - run castle_wars_rockfall_trigger_animations def:<[team]>|<[axis]>
   script:
     - define flag gielinor.minigames.castle_wars.rockfall.<[team]>.<[axis]>.fallen
     - define cuboids <yaml[minigames].read[castle_wars.rocks.<[team]>.<[axis]>.triggers]>
@@ -1438,6 +1473,7 @@ castle_wars_add_rockfall_trigger:
       - define triggers <map>
     - yaml id:minigames set castle_wars.rocks.<[team]>.<[axii]>.triggers:<[triggers].with[<[cuboid]>].as[<[sides]>]>
     - yaml id:minigames savefile:minigames.yml
+
   keys:
     x: 1,0,0
     '-x': -1,0,0
